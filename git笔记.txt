@@ -1,0 +1,48 @@
+
+2369365641@qq.com
+命令git checkout -- readme.txt意思就是，把readme.txt文件在工作区或暂存区的修改全部撤销，这里有两种情况：
+	一种是readme.txt自修改后还没有被放到暂存区，现在，撤销修改就回到和版本库一模一样的状态；
+	一种是readme.txt已经添加到暂存区后，又作了修改，现在，撤销修改就回到添加到暂存区后的状态。
+git checkout -- file命令中的--很重要，没有--，就变成了“切换到另一个分支”的命令
+	checkout -- test.txt其实是用版本库里的版本替换工作区的版本，无论工作区是修改还是删除，都可以“一键还原”。
+
+撤销修改：
+	场景1：当你改乱了工作区某个文件的内容，想直接丢弃工作区的修改时，用命令git checkout -- file。
+
+	场景2：当你不但改乱了工作区某个文件的内容，还添加到了暂存区时，想丢弃修改，分两步，第一步用命令git reset HEAD <file>，就回到了场景1，第二步按场景1操作。
+
+	场景3：已经提交了不合适的修改到版本库时，想要撤销本次提交，参考版本回退一节，不过前提是没有推送到远程库
+	
+与远程库建立连接
+git branch --set-upstream-to=origin/dev
+
+流程：
+1.git pull --rebase origin master 更新代码，若有冲突文件，则将覆盖本地文件
+	若报错，则需要先关联远程仓库为origin：git remote add origin https://github.com/aizhiace/happy.git
+2.git checkout -b <分支名称>
+3.功能开发完成
+4.git status
+5.git add .
+6.git commit -m "修改信息"
+7.git pull --rebase origin master
+8.处理冲突。找到冲突文件，修改，然后重新提交到本地仓库（git add 修改的文件；git commit -m "resolve conflict"）
+9.git push origin yourBranch
+10.merge request。登录git.yonyou.com进行申请，通过后删除远程分枝
+	git merge xxx命令用于合并指定分支到当前分支
+建议：
+1、在每次执行 git add . 或者 git commit -m "修改信息" 前，都执行git status 查看当前本地文件的状态
+2、每次commit后执行git pull --rebase origin master,以获取最新远程代码，尽早解决冲突
+
+查看提交历史：
+git log --pretty=oneline
+	git log不能查看已经删除了的commit记录，只能回退到当前文件的上一个版本
+git reflog
+	查看命令历史，包括commit和reset的操作，可以将当前文件修改为上一个或下一个版本
+版本回退：
+git reset –-soft：回退到某个版本，只回退了commit的信息，不会恢复到index file一级。如果还要提交，直接commit即可；
+git reset -–hard：彻底回退到某个版本，本地的源码也会变为上一个版本的内容，撤销的commit中所包含的更改被冲掉；
+
+注意：
+	1.task 分支应保证最少的 commit 历史记录，如果不小心产生了多个 commit，push 和 merge request（mr） 前，
+	须将多个 commit 历史（上次 push 后本地所有新产生的 commit 历史）合并成一个 commit 历史再 push。使用 git stash 功能可以尽量避免产生多次不必要的 commit。
+	2.task 分支在被合并到 dohko 之后须删除对应的 task 远程分支，本地 task 分支至少保留到迭代上线后删除。
